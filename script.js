@@ -1,19 +1,32 @@
-// Your code here.
-// Function to update the width and height display
-function updateWindowSize() {
-    // Get the current width and height of the window
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+const container = document.getElementById('cube-container');
+let isDragging = false;
+let startX = 0;
+let scrollLeft = 0;
 
-    // Get the h1 element where the size should be displayed
-    const sizeDisplay = document.getElementById('sizeDisplay');
+// Function to handle the start of dragging
+container.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.pageX - container.offsetLeft;
+    scrollLeft = container.scrollLeft;
+    container.style.cursor = 'grabbing'; // Change cursor when dragging starts
+});
 
-    // Update the h1 tag with the new width and height
-    sizeDisplay.textContent = `Width: ${width} and Height: ${height}`;
-}
+// Function to handle dragging movement
+container.addEventListener('mousemove', (e) => {
+    if (!isDragging) return; // Do nothing if not dragging
+    const x = e.pageX - container.offsetLeft;
+    const walk = (x - startX) * 1; // Movement distance
+    container.scrollLeft = scrollLeft - walk; // Scroll the container
+});
 
-// Event listener for window resize
-window.addEventListener('resize', updateWindowSize);
+// Function to handle the end of dragging
+container.addEventListener('mouseup', () => {
+    isDragging = false;
+    container.style.cursor = 'grab'; // Change cursor back to grab
+});
 
-// Initial call to set the size when the page loads
-updateWindowSize();
+// To prevent text selection during dragging
+container.addEventListener('mouseleave', () => {
+    isDragging = false;
+    container.style.cursor = 'grab';
+});
