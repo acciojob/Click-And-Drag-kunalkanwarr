@@ -13,6 +13,13 @@
             display: flex;
             flex-wrap: wrap;
         }
+        .items {
+            display: flex;
+            flex-wrap: wrap;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
         .item {
             width: 100px;
             height: 50px;
@@ -28,13 +35,16 @@
 </head>
 <body>
     <div class="container">
-        <div class="item" style="top: 50px; left: 50px;">Task 1</div>
-        <div class="item" style="top: 50px; left: 200px;">Task 2</div>
-        <div class="item" style="top: 150px; left: 50px;">Task 3</div>
-        <div class="item" style="top: 150px; left: 200px;">Task 4</div>
+        <div class="items">
+            <div class="item" style="top: 50px; left: 50px;">Task 1</div>
+            <div class="item" style="top: 50px; left: 200px;">Task 2</div>
+            <div class="item" style="top: 150px; left: 50px;">Task 3</div>
+            <div class="item" style="top: 150px; left: 200px;">Task 4</div>
+        </div>
     </div>
     <script>
         const container = document.querySelector('.container');
+        const itemsContainer = document.querySelector('.items');
         const items = document.querySelectorAll('.item');
         let selectedItem = null;
         let offsetX, offsetY;
