@@ -1,98 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Draggable To-Do Items</title>
-    <style>
-		.container {
-			width: 600px;
-			height: 400px;
-			border: 2px solid #333;
-			position: relative;
-			display: flex;
-			flex-wrap: wrap;
-			gap: 10px;
-			padding: 10px;
-			background-color: #f9f9f9;
-		}
-		.cube {
-			width: 60px;
-			height: 60px;
-			background-color: #4caf50;
-			position: absolute;
-			cursor: grab;
-			transition: background-color 0.2s ease;
-		}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drag & Drop To-Do</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
 
-		.cube:active {
-			cursor: grabbing;
-			background-color: #388e3c;
-		}
+    h1 {
+      margin-bottom: 10px;
+    }
 
-    </style>
+    ul.items {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      width: 300px;
+    }
+
+    .items li {
+      padding: 12px;
+      margin-bottom: 8px;
+      background: #e0f7fa;
+      border: 1px solid #00acc1;
+      cursor: move;
+    }
+
+    .dragging {
+      opacity: 0.5;
+    }
+  </style>
 </head>
 <body>
-	<div class="container" id="container">
-		<div class="cube"></div>
-		<div class="cube"></div>
-		<div class="cube"></div>
-		<div class="cube"></div>
-	</div>
-    </div>
-    <script>
-		const container = document.getElementById("container");
-		const cubes = document.querySelectorAll(".cube");
+  <h1>To-Do List</h1>
+  <ul class="items" id="todo-list">
+    <li draggable="true">Buy groceries</li>
+    <li draggable="true">Wash the car</li>
+    <li draggable="true">Pay bills</li>
+    <li draggable="true">Read a book</li>
+  </ul>
 
-		let activeCube = null;
-		let offsetX = 0;
-		let offsetY = 0;
-		let containerRect = container.getBoundingClientRect();
+  <script>
+    const list = document.getElementById('todo-list');
+    let draggingEl;
 
-// Initial positioning (grid-like)
-		cubes.forEach((cube, index) => {
-			const col = index % 4;
-			const row = Math.floor(index / 4);
-			cube.style.left = `${col * 80}px`;
-			cube.style.top = `${row * 80}px`;
-		});
+    list.addEventListener('dragstart', (e) => {
+      if (e.target.tagName === 'LI') {
+        draggingEl = e.target;
+        e.target.classList.add('dragging');
+      }
+    });
 
-		cubes.forEach(cube => {
-			cube.addEventListener("mousedown", (e) => {
-				activeCube = cube;
-				const rect = cube.getBoundingClientRect();
-				offsetX = e.clientX - rect.left;
-				offsetY = e.clientY - rect.top;
-				cube.style.zIndex = 1000;
-			});
-		});
+    list.addEventListener('dragend', (e) => {
+      e.target.classList.remove('dragging');
+    });
 
-		document.addEventListener("mousemove", (e) => {
-			if (!activeCube) return;
+    list.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const afterElement = getDragAfterElement(list, e.clientY);
+      if (afterElement == null) {
+        list.appendChild(draggingEl);
+      } else {
+        list.insertBefore(draggingEl, afterElement);
+      }
+    });
 
-			let x = e.clientX - containerRect.left - offsetX;
-			let y = e.clientY - containerRect.top - offsetY;
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('li:not(.dragging)')];
 
-  // Boundary checks
-			x = Math.max(0, Math.min(x, container.clientWidth - activeCube.offsetWidth));
-			y = Math.max(0, Math.min(y, container.clientHeight - activeCube.offsetHeight));
-
-			activeCube.style.left = `${x}px`;
-			activeCube.style.top = `${y}px`;
-		});
-
-		document.addEventListener("mouseup", () => {
-			if (activeCube) {
-				activeCube.style.zIndex = '';
-				activeCube = null;
-			}
-		});
-
-		window.addEventListener("resize", () => {
-			containerRect = container.getBoundingClientRect();
-
-		});
-
-    </script>
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+  </script>
 </body>
 </html>
