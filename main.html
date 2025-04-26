@@ -5,83 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Draggable To-Do Items</title>
     <style>
-        .container {
-            width: 500px;
-            height: 500px;
-            border: 2px solid black;
-            position: relative;
-            display: flex;
-            flex-wrap: wrap;
-        }
-        .items {
-            display: flex;
-            flex-wrap: wrap;
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        .item {
-            width: 100px;
-            height: 50px;
-            background-color: lightblue;
-            position: absolute;
-            cursor: grab;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #000;
-        }
+		.container {
+			width: 600px;
+			height: 400px;
+			border: 2px solid #333;
+			position: relative;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			padding: 10px;
+			background-color: #f9f9f9;
+		}
+		.cube {
+			width: 60px;
+			height: 60px;
+			background-color: #4caf50;
+			position: absolute;
+			cursor: grab;
+			transition: background-color 0.2s ease;
+		}
+
+		.cube:active {
+			cursor: grabbing;
+			background-color: #388e3c;
+		}
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="items">
-            <div class="item" style="top: 50px; left: 50px;">Task 1</div>
-            <div class="item" style="top: 50px; left: 200px;">Task 2</div>
-            <div class="item" style="top: 150px; left: 50px;">Task 3</div>
-            <div class="item" style="top: 150px; left: 200px;">Task 4</div>
-        </div>
+	<div class="container" id="container">
+		<div class="cube"></div>
+		<div class="cube"></div>
+		<div class="cube"></div>
+		<div class="cube"></div>
+	</div>
     </div>
     <script>
-        const container = document.querySelector('.container');
-        const itemsContainer = document.querySelector('.items');
-        const items = document.querySelectorAll('.item');
-        let selectedItem = null;
-        let offsetX, offsetY;
+		const container = document.getElementById("container");
+		const cubes = document.querySelectorAll(".cube");
 
-        items.forEach(item => {
-            item.addEventListener('mousedown', (e) => {
-                selectedItem = e.target;
-                offsetX = e.clientX - selectedItem.offsetLeft;
-                offsetY = e.clientY - selectedItem.offsetTop;
-                selectedItem.style.cursor = 'grabbing';
-            });
-        });
+		let activeCube = null;
+		let offsetX = 0;
+		let offsetY = 0;
+		let containerRect = container.getBoundingClientRect();
 
-        document.addEventListener('mousemove', (e) => {
-            if (selectedItem) {
-                let newX = e.clientX - offsetX;
-                let newY = e.clientY - offsetY;
-                
-                let minX = 0;
-                let minY = 0;
-                let maxX = container.clientWidth - selectedItem.clientWidth;
-                let maxY = container.clientHeight - selectedItem.clientHeight;
-                
-                newX = Math.max(minX, Math.min(newX, maxX));
-                newY = Math.max(minY, Math.min(newY, maxY));
+// Initial positioning (grid-like)
+		cubes.forEach((cube, index) => {
+			const col = index % 4;
+			const row = Math.floor(index / 4);
+			cube.style.left = `${col * 80}px`;
+			cube.style.top = `${row * 80}px`;
+		});
 
-                selectedItem.style.left = newX + 'px';
-                selectedItem.style.top = newY + 'px';
-            }
-        });
+		cubes.forEach(cube => {
+			cube.addEventListener("mousedown", (e) => {
+				activeCube = cube;
+				const rect = cube.getBoundingClientRect();
+				offsetX = e.clientX - rect.left;
+				offsetY = e.clientY - rect.top;
+				cube.style.zIndex = 1000;
+			});
+		});
 
-        document.addEventListener('mouseup', () => {
-            if (selectedItem) {
-                selectedItem.style.cursor = 'grab';
-                selectedItem = null;
-            }
-        });
+		document.addEventListener("mousemove", (e) => {
+			if (!activeCube) return;
+
+			let x = e.clientX - containerRect.left - offsetX;
+			let y = e.clientY - containerRect.top - offsetY;
+
+  // Boundary checks
+			x = Math.max(0, Math.min(x, container.clientWidth - activeCube.offsetWidth));
+			y = Math.max(0, Math.min(y, container.clientHeight - activeCube.offsetHeight));
+
+			activeCube.style.left = `${x}px`;
+			activeCube.style.top = `${y}px`;
+		});
+
+		document.addEventListener("mouseup", () => {
+			if (activeCube) {
+				activeCube.style.zIndex = '';
+				activeCube = null;
+			}
+		});
+
+		window.addEventListener("resize", () => {
+			containerRect = container.getBoundingClientRect();
+
+		});
+
     </script>
 </body>
 </html>
