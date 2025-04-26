@@ -2,64 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Drag & Drop To-Do App</title>
+  <title>Drag and Drop To-Do</title>
   <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
     ul.items {
       list-style: none;
-      width: 300px;
       padding: 0;
+      width: 300px;
+      margin: 0;
     }
-    ul.items li {
-      padding: 12px;
-      margin: 5px 0;
-      background: #e0f7fa;
+
+    .items li {
+      padding: 10px 15px;
+      margin-bottom: 10px;
+      background-color: #e0f7fa;
       border: 1px solid #00acc1;
-      cursor: move;
+      cursor: grab;
+      transition: background-color 0.2s ease;
     }
-    .dragging {
+
+    .items li.dragging {
       opacity: 0.5;
+      background-color: #b2ebf2;
     }
   </style>
 </head>
 <body>
-  <h1>To-Do List</h1>
+  <h2>To-Do List</h2>
   <ul class="items" id="todo-list">
-    <li draggable="true">Task 1</li>
-    <li draggable="true">Task 2</li>
-    <li draggable="true">Task 3</li>
+    <li draggable="true">✅ Buy groceries</li>
+    <li draggable="true">🚗 Wash the car</li>
+    <li draggable="true">💳 Pay bills</li>
+    <li draggable="true">📚 Read a book</li>
   </ul>
 
   <script>
-    const list = document.getElementById('todo-list');
-    let dragging;
+    const list = document.getElementById("todo-list");
+    let draggingItem = null;
 
-    list.addEventListener('dragstart', (e) => {
-      dragging = e.target;
-      dragging.classList.add('dragging');
+    list.addEventListener("dragstart", (e) => {
+      if (e.target.tagName === "LI") {
+        draggingItem = e.target;
+        e.target.classList.add("dragging");
+      }
     });
 
-    list.addEventListener('dragend', () => {
-      dragging.classList.remove('dragging');
-      dragging = null;
+    list.addEventListener("dragend", (e) => {
+      if (e.target.tagName === "LI") {
+        e.target.classList.remove("dragging");
+        draggingItem = null;
+      }
     });
 
-    list.addEventListener('dragover', (e) => {
+    list.addEventListener("dragover", (e) => {
       e.preventDefault();
-      const after = getDragAfterElement(list, e.clientY);
-      if (!after) {
-        list.appendChild(dragging);
+      const afterElement = getDragAfterElement(list, e.clientY);
+      if (!afterElement) {
+        list.appendChild(draggingItem);
       } else {
-        list.insertBefore(dragging, after);
+        list.insertBefore(draggingItem, afterElement);
       }
     });
 
     function getDragAfterElement(container, y) {
-      const items = [...container.querySelectorAll('li:not(.dragging)')];
-      return items.reduce((closest, item) => {
-        const box = item.getBoundingClientRect();
+      const draggableElements = [...container.querySelectorAll("li:not(.dragging)")];
+
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
         const offset = y - box.top - box.height / 2;
         if (offset < 0 && offset > closest.offset) {
-          return { offset, element: item };
+          return { offset: offset, element: child };
         } else {
           return closest;
         }
