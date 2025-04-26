@@ -2,33 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Drag & Drop To-Do</title>
+  <title>Drag & Drop To-Do App</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-    }
-
     ul.items {
       list-style: none;
-      padding: 0;
-      margin: 0;
       width: 300px;
+      padding: 0;
     }
-
-    .items li {
+    ul.items li {
       padding: 12px;
-      margin-bottom: 8px;
+      margin: 5px 0;
       background: #e0f7fa;
       border: 1px solid #00acc1;
       cursor: move;
     }
-
     .dragging {
       opacity: 0.5;
     }
@@ -37,45 +24,42 @@
 <body>
   <h1>To-Do List</h1>
   <ul class="items" id="todo-list">
-    <li draggable="true">Buy groceries</li>
-    <li draggable="true">Wash the car</li>
-    <li draggable="true">Pay bills</li>
-    <li draggable="true">Read a book</li>
+    <li draggable="true">Task 1</li>
+    <li draggable="true">Task 2</li>
+    <li draggable="true">Task 3</li>
   </ul>
 
   <script>
     const list = document.getElementById('todo-list');
-    let draggingEl;
+    let dragging;
 
     list.addEventListener('dragstart', (e) => {
-      if (e.target.tagName === 'LI') {
-        draggingEl = e.target;
-        e.target.classList.add('dragging');
-      }
+      dragging = e.target;
+      dragging.classList.add('dragging');
     });
 
-    list.addEventListener('dragend', (e) => {
-      e.target.classList.remove('dragging');
+    list.addEventListener('dragend', () => {
+      dragging.classList.remove('dragging');
+      dragging = null;
     });
 
     list.addEventListener('dragover', (e) => {
       e.preventDefault();
-      const afterElement = getDragAfterElement(list, e.clientY);
-      if (afterElement == null) {
-        list.appendChild(draggingEl);
+      const after = getDragAfterElement(list, e.clientY);
+      if (!after) {
+        list.appendChild(dragging);
       } else {
-        list.insertBefore(draggingEl, afterElement);
+        list.insertBefore(dragging, after);
       }
     });
 
     function getDragAfterElement(container, y) {
-      const draggableElements = [...container.querySelectorAll('li:not(.dragging)')];
-
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
+      const items = [...container.querySelectorAll('li:not(.dragging)')];
+      return items.reduce((closest, item) => {
+        const box = item.getBoundingClientRect();
         const offset = y - box.top - box.height / 2;
         if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
+          return { offset, element: item };
         } else {
           return closest;
         }
