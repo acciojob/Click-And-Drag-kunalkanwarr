@@ -1,90 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drag and Drop Cubes</title>
-  <style>
-    /* Basic container styling */
-    .container {
-      width: 500px;
-      height: 500px;
-      border: 2px solid #000;
-      position: relative;
-      display: flex;
-      flex-wrap: wrap;
-    }
+    <meta charset="UTF-8">
+    <title>Draggable Cubes</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: sans-serif;
+        }
 
-    /* Cube styling */
-    .cube {
-      width: 80px;
-      height: 80px;
-      margin: 5px;
-      background-color: #4CAF50;
-      cursor: pointer;
-      position: absolute;
-    }
-  </style>
+        .container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border: 2px solid #333;
+            background-color: #f9f9f9;
+        }
+
+        .cube {
+            width: 80px;
+            height: 80px;
+            background-color: #4CAF50;
+            position: absolute;
+            cursor: grab;
+            user-select: none;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .cube:active {
+            cursor: grabbing;
+            box-shadow: 0 0 10px #00000050;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
+
+<h2>Draggable Cubes</h2>
+<p>Click and drag the cubes within the container:</p>
+
+<div class="container" id="container">
     <div class="cube"></div>
     <div class="cube"></div>
     <div class="cube"></div>
     <div class="cube"></div>
 </div>
-	<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const container = document.querySelector('.container');
-    const containerRect = container.getBoundingClientRect();
-    const cubes = document.querySelectorAll('.cube');
 
-    // Position cubes in a grid layout initially
-    const gridSize = 100; // 80px cube + 10px gap
-    cubes.forEach((cube, i) => {
-        const row = Math.floor(i / 2);
-        const col = i % 2;
-        cube.style.left = `${col * gridSize}px`;
-        cube.style.top = `${row * gridSize}px`;
-    });
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('container');
+        const cubes = document.querySelectorAll('.cube');
+        const containerRect = container.getBoundingClientRect();
 
-    let selectedCube = null;
-    let offsetX = 0;
-    let offsetY = 0;
+        // Arrange cubes in grid positions
+        const gridSize = 90; // 80px size + 10px gap
+        cubes.forEach((cube, i) => {
+            const row = Math.floor(i / 2);
+            const col = i % 2;
+            cube.style.left = `${col * gridSize}px`;
+            cube.style.top = `${row * gridSize}px`;
+        });
 
-    cubes.forEach(cube => {
-        cube.addEventListener('mousedown', (e) => {
-            selectedCube = cube;
+        let selectedCube = null;
+        let offsetX = 0;
+        let offsetY = 0;
 
-            const rect = cube.getBoundingClientRect();
-            offsetX = e.clientX - rect.left;
-            offsetY = e.clientY - rect.top;
+        cubes.forEach(cube => {
+            cube.addEventListener('mousedown', (e) => {
+                selectedCube = cube;
+                const rect = cube.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+                cube.style.zIndex = 1000;
+            });
+        });
 
-            cube.style.zIndex = 1000; // bring to front
+        document.addEventListener('mousemove', (e) => {
+            if (!selectedCube) return;
+
+            let newLeft = e.clientX - containerRect.left - offsetX;
+            let newTop = e.clientY - containerRect.top - offsetY;
+
+            // Clamp cube to container bounds
+            newLeft = Math.max(0, Math.min(newLeft, container.clientWidth - selectedCube.offsetWidth));
+            newTop = Math.max(0, Math.min(newTop, container.clientHeight - selectedCube.offsetHeight));
+
+            selectedCube.style.left = `${newLeft}px`;
+            selectedCube.style.top = `${newTop}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (selectedCube) {
+                selectedCube.style.zIndex = '';
+                selectedCube = null;
+            }
         });
     });
-
-    document.addEventListener('mousemove', (e) => {
-        if (!selectedCube) return;
-
-        let newLeft = e.clientX - containerRect.left - offsetX;
-        let newTop = e.clientY - containerRect.top - offsetY;
-
-        // Clamp to container bounds
-        newLeft = Math.max(0, Math.min(newLeft, container.clientWidth - selectedCube.offsetWidth));
-        newTop = Math.max(0, Math.min(newTop, container.clientHeight - selectedCube.offsetHeight));
-
-        selectedCube.style.left = `${newLeft}px`;
-        selectedCube.style.top = `${newTop}px`;
-    });
-
-    document.addEventListener('mouseup', () => {
-        if (selectedCube) {
-            selectedCube.style.zIndex = ''; // reset
-            selectedCube = null;
-        }
-    });
-});
 </script>
 
 </body>
