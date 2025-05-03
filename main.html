@@ -27,77 +27,65 @@
   </style>
 </head>
 <body>
-
-  <div class="container">
-    <div class="cube" style="top: 10px; left: 10px;"></div>
-    <div class="cube" style="top: 10px; left: 100px;"></div>
-    <div class="cube" style="top: 100px; left: 10px;"></div>
-    <div class="cube" style="top: 100px; left: 100px;"></div>
-  </div>
-
-  <script>
-    // JavaScript implementation for drag-and-drop
+<div class="container">
+    <div class="cube"></div>
+    <div class="cube"></div>
+    <div class="cube"></div>
+    <div class="cube"></div>
+</div>
+	<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.querySelector('.container');
+    const containerRect = container.getBoundingClientRect();
     const cubes = document.querySelectorAll('.cube');
+
+    // Position cubes in a grid layout initially
+    const gridSize = 100; // 80px cube + 10px gap
+    cubes.forEach((cube, i) => {
+        const row = Math.floor(i / 2);
+        const col = i % 2;
+        cube.style.left = `${col * gridSize}px`;
+        cube.style.top = `${row * gridSize}px`;
+    });
+
     let selectedCube = null;
     let offsetX = 0;
     let offsetY = 0;
 
-    // Mouse down event to select a cube
     cubes.forEach(cube => {
-      cube.addEventListener('mousedown', (e) => {
-        selectedCube = cube;
+        cube.addEventListener('mousedown', (e) => {
+            selectedCube = cube;
 
-        // Calculate the offset when clicking on the cube
-        offsetX = e.clientX - cube.offsetLeft;
-        offsetY = e.clientY - cube.offsetTop;
+            const rect = cube.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
 
-        // Change cursor style to indicate dragging
-        cube.style.cursor = 'grabbing';
-
-        // Attach mousemove and mouseup events to the document
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-      });
+            cube.style.zIndex = 1000; // bring to front
+        });
     });
 
-    // Mouse move event to drag the cube
-    function onMouseMove(e) {
-      if (selectedCube) {
-        // Calculate new position based on mouse position and offset
-        let newX = e.clientX - offsetX;
-        let newY = e.clientY - offsetY;
+    document.addEventListener('mousemove', (e) => {
+        if (!selectedCube) return;
 
-        // Prevent the cube from being dragged outside the container (boundary check)
-        const containerRect = document.querySelector('.container').getBoundingClientRect();
-        const cubeRect = selectedCube.getBoundingClientRect();
+        let newLeft = e.clientX - containerRect.left - offsetX;
+        let newTop = e.clientY - containerRect.top - offsetY;
 
-        // Limit the cube's position within the container's boundaries
-        if (newX < containerRect.left) newX = containerRect.left;
-        if (newY < containerRect.top) newY = containerRect.top;
-        if (newX + cubeRect.width > containerRect.right) newX = containerRect.right - cubeRect.width;
-        if (newY + cubeRect.height > containerRect.bottom) newY = containerRect.bottom - cubeRect.height;
+        // Clamp to container bounds
+        newLeft = Math.max(0, Math.min(newLeft, container.clientWidth - selectedCube.offsetWidth));
+        newTop = Math.max(0, Math.min(newTop, container.clientHeight - selectedCube.offsetHeight));
 
-        // Update cube's position
-        selectedCube.style.left = newX - containerRect.left + 'px';
-        selectedCube.style.top = newY - containerRect.top + 'px';
-      }
-    }
+        selectedCube.style.left = `${newLeft}px`;
+        selectedCube.style.top = `${newTop}px`;
+    });
 
-    // Mouse up event to drop the cube
-    function onMouseUp() {
-      if (selectedCube) {
-        // Reset the cursor style
-        selectedCube.style.cursor = 'pointer';
-
-        // Remove the event listeners
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      }
-
-      // Deselect the cube
-      selectedCube = null;
-    }
-  </script>
+    document.addEventListener('mouseup', () => {
+        if (selectedCube) {
+            selectedCube.style.zIndex = ''; // reset
+            selectedCube = null;
+        }
+    });
+});
+</script>
 
 </body>
 </html>
