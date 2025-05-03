@@ -1,90 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Drag and Drop To-Do</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drag and Drop Cubes</title>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
+    /* Basic container styling */
+    .container {
+      width: 500px;
+      height: 500px;
+      border: 2px solid #000;
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
     }
 
-    h2 {
-      margin-bottom: 10px;
-    }
-
-    ul.items {
-      list-style: none;
-      padding: 0;
-      width: 300px;
-      margin: 0;
-    }
-
-    .items li {
-      padding: 10px 15px;
-      margin-bottom: 10px;
-      background-color: #e0f7fa;
-      border: 1px solid #00acc1;
-      cursor: grab;
-      transition: background-color 0.2s ease;
-    }
-
-    .items li.dragging {
-      opacity: 0.5;
-      background-color: #b2ebf2;
+    /* Cube styling */
+    .cube {
+      width: 80px;
+      height: 80px;
+      margin: 5px;
+      background-color: #4CAF50;
+      cursor: pointer;
+      position: absolute;
     }
   </style>
 </head>
 <body>
-  <h2>To-Do List</h2>
-  <ul class="items" id="todo-list">
-    <li draggable="true">✅ Buy groceries</li>
-    <li draggable="true">🚗 Wash the car</li>
-    <li draggable="true">💳 Pay bills</li>
-    <li draggable="true">📚 Read a book</li>
-  </ul>
+
+  <div class="container">
+    <div class="cube" style="top: 10px; left: 10px;"></div>
+    <div class="cube" style="top: 10px; left: 100px;"></div>
+    <div class="cube" style="top: 100px; left: 10px;"></div>
+    <div class="cube" style="top: 100px; left: 100px;"></div>
+  </div>
 
   <script>
-    const list = document.getElementById("todo-list");
-    let draggingItem = null;
+    // JavaScript implementation for drag-and-drop
+    const cubes = document.querySelectorAll('.cube');
+    let selectedCube = null;
+    let offsetX = 0;
+    let offsetY = 0;
 
-    list.addEventListener("dragstart", (e) => {
-      if (e.target.tagName === "LI") {
-        draggingItem = e.target;
-        e.target.classList.add("dragging");
-      }
+    // Mouse down event to select a cube
+    cubes.forEach(cube => {
+      cube.addEventListener('mousedown', (e) => {
+        selectedCube = cube;
+
+        // Calculate the offset when clicking on the cube
+        offsetX = e.clientX - cube.offsetLeft;
+        offsetY = e.clientY - cube.offsetTop;
+
+        // Change cursor style to indicate dragging
+        cube.style.cursor = 'grabbing';
+
+        // Attach mousemove and mouseup events to the document
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
     });
 
-    list.addEventListener("dragend", (e) => {
-      if (e.target.tagName === "LI") {
-        e.target.classList.remove("dragging");
-        draggingItem = null;
+    // Mouse move event to drag the cube
+    function onMouseMove(e) {
+      if (selectedCube) {
+        // Calculate new position based on mouse position and offset
+        let newX = e.clientX - offsetX;
+        let newY = e.clientY - offsetY;
+
+        // Prevent the cube from being dragged outside the container (boundary check)
+        const containerRect = document.querySelector('.container').getBoundingClientRect();
+        const cubeRect = selectedCube.getBoundingClientRect();
+
+        // Limit the cube's position within the container's boundaries
+        if (newX < containerRect.left) newX = containerRect.left;
+        if (newY < containerRect.top) newY = containerRect.top;
+        if (newX + cubeRect.width > containerRect.right) newX = containerRect.right - cubeRect.width;
+        if (newY + cubeRect.height > containerRect.bottom) newY = containerRect.bottom - cubeRect.height;
+
+        // Update cube's position
+        selectedCube.style.left = newX - containerRect.left + 'px';
+        selectedCube.style.top = newY - containerRect.top + 'px';
       }
-    });
+    }
 
-    list.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      const afterElement = getDragAfterElement(list, e.clientY);
-      if (!afterElement) {
-        list.appendChild(draggingItem);
-      } else {
-        list.insertBefore(draggingItem, afterElement);
+    // Mouse up event to drop the cube
+    function onMouseUp() {
+      if (selectedCube) {
+        // Reset the cursor style
+        selectedCube.style.cursor = 'pointer';
+
+        // Remove the event listeners
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
       }
-    });
 
-    function getDragAfterElement(container, y) {
-      const draggableElements = [...container.querySelectorAll("li:not(.dragging)")];
-
-      return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return { offset: offset, element: child };
-        } else {
-          return closest;
-        }
-      }, { offset: Number.NEGATIVE_INFINITY }).element;
+      // Deselect the cube
+      selectedCube = null;
     }
   </script>
+
 </body>
 </html>
